@@ -1,9 +1,10 @@
 ﻿using ComputerGraphics2D;
+using ComputerGraphics2D.Interfaces;
 using System.Drawing;
 
 namespace Matice.Objects
 {
-	public class Aroplane
+	public class Aroplane: IDrawable2D
 	{
 		private Vertex[] vertexBufferOrig;
 		private Vertex[] vertexBuffer;

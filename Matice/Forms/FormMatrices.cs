@@ -13,17 +13,25 @@ namespace ComputerGraphics2D
 	public partial class FormMatrices : Form
 	{
 		private float angleRotation = 0.0f;
-
 		private List<IDrawable2D> drawableObjects; 
 		private Aroplane aroplane;
 		private BezierCubic bezierCubic;
-		private BezierCurve bezierCurve; 
+		private BezierCurve bezierCurve;
+		private int? movingVertex;
+		private bool isActionMoving = false;
+
+		private float angleLinerMotion = (float)Math.PI / 6.0f;      // rad
+		private float speedLinearMotion = 1.0f;						 // m/s.
+		private long lastMillisecondsLinearMotion = 0; 
 
 		Stopwatch stopWatch = new Stopwatch();
 		
 		public FormMatrices()
 		{
 			InitializeComponent();
+			StartPosition = FormStartPosition.CenterScreen;
+
+			drawableObjects = new List<IDrawable2D>(); 
 
 			// ----------------------------------------------------------------------------- //
 			// Bezier cubic
@@ -36,14 +44,24 @@ namespace ComputerGraphics2D
 			bezierCurve = new BezierCurve(new Vertex(20, 20), new Vertex(80, 20));
 			bezierCurve.AddControlVertex(new Vertex(40, 20));
 			bezierCurve.AddControlVertex(new Vertex(40, 40));
-			bezierCurve.AddControlVertex(new Vertex(20, 40));
-			bezierCurve.AddControlVertex(new Vertex(20, 80));
-			bezierCurve.AddControlVertex(new Vertex(80, 80));
+			//bezierCurve.AddControlVertex(new Vertex(20, 40));
+			//bezierCurve.AddControlVertex(new Vertex(20, 80));
+			//bezierCurve.AddControlVertex(new Vertex(80, 80));
 
 			// ----------------------------------------------------------------------------- //
 			// Aroplane
 			// ----------------------------------------------------------------------------- //	
 			aroplane = new Aroplane();
+
+			// ----------------------------------------------------------------------------- //
+			// Point cloud
+			// ----------------------------------------------------------------------------- //
+			Random rnd = new Random();
+
+			for (int i = 0; i < 100; i++)
+			{
+				drawableObjects.Add(new Point2D(new Vector1x3((float)rnd.NextDouble() * 100, (float)rnd.NextDouble() * 100)));
+			}
 
 			// start stopwatch
 			stopWatch.Start();
@@ -88,7 +106,7 @@ namespace ComputerGraphics2D
 		private void drawingPanel_Paint(object sender, PaintEventArgs e)
 		{
 			Graphics g = e.Graphics;
-			g.SmoothingMode = SmoothingMode.AntiAlias;
+			//g.SmoothingMode = SmoothingMode.AntiAlias;
 			g.Clear(Color.White);
 
 			// ----------------------------------------------------------------------------- //
@@ -99,13 +117,27 @@ namespace ComputerGraphics2D
 			// ----------------------------------------------------------------------------- //
 			// Bezier curve vyssieho stupna
 			// ----------------------------------------------------------------------------- //	
-			bezierCurve.Draw(g);
+			//bezierCurve.Draw(g);
 
 			// ----------------------------------------------------------------------------- //
 			// Aroplane
 			// ----------------------------------------------------------------------------- //	
-			//aroplane.ApplyTransformations(MoveObjectCircularMotion());
+			aroplane.ApplyTransformations(MoveObjectCircularMotion());
 			//aroplane.Draw(g);
+
+			// ----------------------------------------------------------------------------- //
+			// Drawable objects
+			// ----------------------------------------------------------------------------- //	
+			Matrix3x3 t  = MoveObjectLinearMotion(stopWatch.ElapsedMilliseconds - lastMillisecondsLinearMotion);
+			lastMillisecondsLinearMotion = stopWatch.ElapsedMilliseconds;
+
+			foreach (var o in drawableObjects)
+			{
+				if (o is Point2D)
+					(o as Point2D).Move(t);
+
+				o.Draw(g);
+			}
 		}
 
 		/// <summary>
@@ -126,9 +158,23 @@ namespace ComputerGraphics2D
 			r.SetRotation(angleRotation + (float)Math.PI/2.0f);
 
 			Matrix3x3 t = new Matrix3x3();
-			t.SetTranslation(30.0f * (float)Math.Cos(angleRotation) + 50.0f, 30.0f * (float)Math.Sin(angleRotation) + 50.0f);
+			t.SetTranslation(30.0f * (float)Math.Cos(angleLinerMotion) + 50.0f, 30.0f * (float)Math.Sin(angleLinerMotion) + 50.0f);
 
 			return s * r * t;
+		}
+
+		/// <summary>
+		/// MoveObjectCircularMotion
+		/// </summary>
+		/// <returns></returns>
+		private Matrix3x3 MoveObjectLinearMotion(long inDeltaMilliseconds)
+		{
+			float dXY = speedLinearMotion / 1000 * inDeltaMilliseconds;
+
+			Matrix3x3 t = new Matrix3x3();
+			t.SetTranslation(dXY * (float)Math.Cos(angleLinerMotion), dXY * (float)Math.Sin(angleLinerMotion));
+
+			return t; 
 		}
 
 		/// <summary>
@@ -144,15 +190,15 @@ namespace ComputerGraphics2D
 		/// </summary>
 		private void drawingPanel_MouseDown(object sender, MouseEventArgs e)
 		{
-			Vertex v = Math2DTools.GetXY(e.Location);
-			int? index = bezierCurve.GetVertexIDByUV(e.Location);
-			string indexString = "false";
-
-			if (index != null)
-				indexString = index.Value.ToString();
-
-			richTextBoxText.AppendText("Mouse position: U=" + e.X.ToString() + "(X=" + v.X.ToString() + ")" +
-										", V=" + e.Y.ToString() + "(Y=" + v.Y.ToString() + ")" + "Hit:" + indexString + "\r\n");
+			movingVertex = bezierCurve.GetVertexIDByUV(e.Location);
+			//string indexString = "false";
+			if (movingVertex != null)
+			{
+				//indexString = movingVertex.Value.ToString();
+				isActionMoving = true; 
+			}
+			//richTextBoxText.AppendText("Mouse position: U=" + e.X.ToString() + "(X=" + v.X.ToString() + ")" +
+			//							", V=" + e.Y.ToString() + "(Y=" + v.Y.ToString() + ")" + "Hit:" + indexString + "\r\n");
 		}
 
 		/// <summary>
@@ -160,7 +206,11 @@ namespace ComputerGraphics2D
 		/// </summary>
 		private void drawingPanel_MouseMove(object sender, MouseEventArgs e)
 		{
-
+			if (isActionMoving)
+			{
+				bezierCurve.Move(e.Location, movingVertex);
+				drawingPanel.Invalidate();
+			}
 		}
 
 		/// <summary>
@@ -168,7 +218,17 @@ namespace ComputerGraphics2D
 		/// </summary>
 		private void drawingPanel_MouseUp(object sender, MouseEventArgs e)
 		{
+			isActionMoving = false; 
+			drawingPanel.Invalidate();
+		}
 
+		/// <summary>
+		/// WriteText
+		/// </summary>
+		/// <param name="inText"></param>
+		public void WriteTextNL(string inText)
+		{
+			richTextBoxText.AppendText(inText + "\r\n");
 		}
 	}
 }

@@ -1,4 +1,5 @@
 ﻿using ComputerGraphics2D.Interfaces;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 
@@ -6,8 +7,8 @@ namespace ComputerGraphics2D.Curves
 {
 	public class BezierCurve: IDrawable2D
 	{
-		private Vertex startVertex;
-		private Vertex endVertex; 
+		//private Vertex startVertex;
+		//private Vertex endVertex; 
 		private List<Vertex> controlPoints;
 
 		/// <summary>
@@ -21,10 +22,10 @@ namespace ComputerGraphics2D.Curves
 		/// <summary>
 		/// Constructor
 		/// </summary>
-		public BezierCurve(Vertex inStartVertex, Vertex inEndVertex): this()
+		public BezierCurve(Vertex v1, Vertex v2): this()
 		{
-			startVertex = inStartVertex;
-			endVertex = inEndVertex; 
+			controlPoints.Insert(0, v1);
+			controlPoints.Add(v2);
 		}
 
 		/// <summary>
@@ -33,7 +34,7 @@ namespace ComputerGraphics2D.Curves
 		/// <param name="v">Start vertex</param>
 		public void SetStartVertex(Vertex v)
 		{
-			startVertex = v; 
+			controlPoints.Insert(0, v);
 		}
 
 		/// <summary>
@@ -42,7 +43,7 @@ namespace ComputerGraphics2D.Curves
 		/// <param name="v">End vertex</param>
 		public void SetEndVertex(Vertex v)
 		{
-			endVertex = v; 
+			controlPoints.Add(v); 
 		}
 
 		/// <summary>
@@ -51,24 +52,10 @@ namespace ComputerGraphics2D.Curves
 		/// <param name="v">Control vertex</param>
 		public void AddControlVertex(Vertex v)
 		{
-			controlPoints.Add(v);
-		}
+			if (controlPoints.Count < 2)
+				throw new Exception("Cannot add control points without start and end point");
 
-		/// <summary>
-		/// Get bezier point list
-		/// </summary>
-		/// <returns>Point list of bezier control points</returns>
-		private List<Vertex> GetBezierPointList()
-		{
-			List<Vertex> curve = new List<Vertex>();
-			curve.Add(startVertex);
-
-			foreach (Vertex p in controlPoints)
-				curve.Add(p);
-
-			curve.Add(endVertex);
-
-			return curve; 
+			controlPoints.Insert(controlPoints.Count-1, v); 
 		}
 
 		/// <summary>
@@ -89,16 +76,24 @@ namespace ComputerGraphics2D.Curves
 		/// <returns></returns>
 		public int? GetVertexIDByUV(Point p)
 		{
-			int? returnValue = null;
-			var bcc = GetBezierPointList();
-
-			for (int i = 0; i < bcc.Count; i++)
+			for (int i = 0; i < controlPoints.Count; i++)
 			{
-				if (IsHitByUV(bcc[i], p))
-					return i; 
+				if (IsHitByUV(controlPoints[i], p))
+					return i;
 			}
+			return null; 
+		}
 
-			return returnValue; 
+		/// <summary>
+		/// Move
+		/// </summary>
+		/// <param name="p"></param>
+		public void Move(Point p, int? vID)
+		{
+			if (vID == null)
+				return;
+
+			controlPoints[vID.Value] = Math2DTools.GetXY(p);
 		}
 
 		/// <summary>
@@ -107,39 +102,35 @@ namespace ComputerGraphics2D.Curves
 		/// <param name="g">Grahpics context</param>
 		public void Draw(Graphics g)
 		{
-			// get bezier point control vertices
-			var bcc = GetBezierPointList();
-
 			// draw the actual bezier curve points
-			List<Vertex> bcp = DeCasteljau.Points(bcc, 0.02);
+			List<Vertex> bcp = DeCasteljau.Points(controlPoints, 0.01);
 
 			if (bcp == null)
 				return; 
 
 			// draw interconnections between control points
-			for (int i = 0; i < bcc.Count - 1; i++)
-				g.DrawLine(Pens.Black, Math2DTools.GetUV(bcc[i]), Math2DTools.GetUV(bcc[i + 1]));
+			for (int i = 0; i < controlPoints.Count - 1; i++)
+				g.DrawLine(Pens.Black, Math2DTools.GetUV(controlPoints[i]), Math2DTools.GetUV(controlPoints[i + 1]));
 
 			// draw draw control points
 			using (var f = new Font("Arial", 10))
 			{
-				Rectangle rect = new Rectangle(new Point(Math2DTools.GetUV(startVertex).X - 5, Math2DTools.GetUV(startVertex).Y - 5), new Size(10, 10));
+				Rectangle rect = new Rectangle(new Point(Math2DTools.GetUV(controlPoints[0]).X - 5, Math2DTools.GetUV(controlPoints[0]).Y - 5), new Size(10, 10));
 				g.FillRectangle(Brushes.Green, rect);
 				g.DrawRectangle(Pens.Black, rect);
 				g.DrawString("V start", f, Brushes.Black, new Point(rect.X + 10, rect.Y + 10));
 
-				rect = new Rectangle(new Point(Math2DTools.GetUV(endVertex).X - 5, Math2DTools.GetUV(endVertex).Y - 5), new Size(10, 10));
+				rect = new Rectangle(new Point(Math2DTools.GetUV(controlPoints[controlPoints.Count - 1]).X - 5, Math2DTools.GetUV(controlPoints[controlPoints.Count - 1]).Y - 5), new Size(10, 10));
 				g.FillRectangle(Brushes.Green, rect);
 				g.DrawRectangle(Pens.Black, rect);
 				g.DrawString("V end", f, Brushes.Black, new Point(rect.X + 10, rect.Y + 10));
 
-				int i = 1; 
-				foreach (var p in controlPoints)
+				for (int i = 1; i < controlPoints.Count-1; i++)
 				{
-					rect = new Rectangle(new Point(Math2DTools.GetUV(p).X - 5, Math2DTools.GetUV(p).Y - 5), new Size(10, 10));
+					rect = new Rectangle(new Point(Math2DTools.GetUV(controlPoints[i]).X - 5, Math2DTools.GetUV(controlPoints[i]).Y - 5), new Size(10, 10));
 					g.FillRectangle(Brushes.DarkOrange, rect);
 					g.DrawRectangle(Pens.Black, rect);
-					g.DrawString("C" + i++.ToString(), f, Brushes.Black, new Point(rect.X + 10, rect.Y + 10));
+					g.DrawString("C" + i.ToString(), f, Brushes.Black, new Point(rect.X + 10, rect.Y + 10));
 				}
 			}
 

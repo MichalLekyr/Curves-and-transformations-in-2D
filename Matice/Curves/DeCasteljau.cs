@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace ComputerGraphics2D.Curves
 {
@@ -7,17 +8,19 @@ namespace ComputerGraphics2D.Curves
 		/// <summary>
 		/// Return point for the Decasteljau recursion
 		/// </summary>
-		/// <param name="r">Point index</param>
 		/// <param name="i">Point index</param>
+		/// <param name="j">Point index</param>
 		/// <param name="t">Time parameter</param>
 		/// <returns>Final point on a curve</returns>
-		private static Vertex GetDeCasteljauPoint(ref List<Vertex> p, int r, int i, double t)
+		private static Vertex GetDeCasteljauPoint(ref List<Vertex> p, int i, int j, double t)
 		{
-			if (r == 0)
-				return p[i];
+			//(Program.MainForm as FormMatrices).WriteTextNL("DeCasteljau: r:" + r.ToString() + ", i:" + i.ToString());
 
-			Vertex p1 = GetDeCasteljauPoint(ref p, r - 1, i, t);
-			Vertex p2 = GetDeCasteljauPoint(ref p, r - 1, i + 1, t);
+			if (i == 0)
+				return p[j];
+
+			Vertex p1 = GetDeCasteljauPoint(ref p, i - 1, j, t);
+			Vertex p2 = GetDeCasteljauPoint(ref p, i - 1, j + 1, t);
 
 			return new Vertex((float)((1 - t) * p1.X + t * p2.X), (float)((1 - t) * p1.Y + t * p2.Y));
 		}

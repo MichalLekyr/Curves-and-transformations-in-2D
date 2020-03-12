@@ -24,6 +24,26 @@ namespace ComputerGraphics2D
 		/// <summary>
 		/// GetUV
 		/// </summary>
+		/// <param name="v"></param>
+		/// <returns></returns>
+		public static Point GetUV(Vector1x3 v)
+		{
+			return new Point((int)Math.Round(v._11 / Xmax * Umax), (int)Math.Round(Vmax - (v._12 / Ymax * Vmax)));
+		}
+
+		/// <summary>
+		/// GetUV
+		/// </summary>
+		/// <param name="v"></param>
+		/// <returns></returns>
+		public static PointF GetUVF(Vector1x3 v)
+		{
+			return new PointF(v._11 / Xmax * Umax, Vmax - (v._12 / Ymax * Vmax));
+		}
+
+		/// <summary>
+		/// GetUV
+		/// </summary>
 		/// <param name="p">Point</param>
 		/// <returns></returns>
 		public static Point GetUV(Point p)

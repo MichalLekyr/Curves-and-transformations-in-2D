@@ -62,6 +62,7 @@
       <DependentUpon>FormMatrices.cs</DependentUpon>
     </Compile>
     <Compile Include="Matrix3x3.cs" />
+    <Compile Include="Point2D.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Math2DTools.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

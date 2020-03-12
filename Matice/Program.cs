@@ -6,6 +6,8 @@ namespace ComputerGraphics2D
 {
 	static class Program
 	{
+		public static Form MainForm; 
+
 		/// <summary>
 		/// The main entry point for the application.
 		/// </summary>
@@ -14,7 +16,9 @@ namespace ComputerGraphics2D
 		{
 			Application.EnableVisualStyles();
 			Application.SetCompatibleTextRenderingDefault(false);
-			Application.Run(new FormMatrices());
+			MainForm = new FormMatrices();
+
+			Application.Run(MainForm);
 		}
 	}
 }
