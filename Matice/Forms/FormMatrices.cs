@@ -44,9 +44,9 @@ namespace ComputerGraphics2D
 			bezierCurve = new BezierCurve(new Vertex(20, 20), new Vertex(80, 20));
 			bezierCurve.AddControlVertex(new Vertex(40, 20));
 			bezierCurve.AddControlVertex(new Vertex(40, 40));
-			//bezierCurve.AddControlVertex(new Vertex(20, 40));
-			//bezierCurve.AddControlVertex(new Vertex(20, 80));
-			//bezierCurve.AddControlVertex(new Vertex(80, 80));
+			bezierCurve.AddControlVertex(new Vertex(20, 40));
+			bezierCurve.AddControlVertex(new Vertex(20, 80));
+			bezierCurve.AddControlVertex(new Vertex(80, 80));
 
 			// ----------------------------------------------------------------------------- //
 			// Aroplane
@@ -56,12 +56,12 @@ namespace ComputerGraphics2D
 			// ----------------------------------------------------------------------------- //
 			// Point cloud
 			// ----------------------------------------------------------------------------- //
-			Random rnd = new Random();
+			//Random rnd = new Random();
 
-			for (int i = 0; i < 100; i++)
-			{
-				drawableObjects.Add(new Point2D(new Vector1x3((float)rnd.NextDouble() * 100, (float)rnd.NextDouble() * 100)));
-			}
+			//for (int i = 0; i < 100; i++)
+			//{
+			//	drawableObjects.Add(new Point2D(new Vector1x3((float)rnd.NextDouble() * 100, (float)rnd.NextDouble() * 100)));
+			//}
 
 			// start stopwatch
 			stopWatch.Start();
@@ -117,7 +117,7 @@ namespace ComputerGraphics2D
 			// ----------------------------------------------------------------------------- //
 			// Bezier curve vyssieho stupna
 			// ----------------------------------------------------------------------------- //	
-			//bezierCurve.Draw(g);
+			bezierCurve.Draw(g);
 
 			// ----------------------------------------------------------------------------- //
 			// Aroplane
